@@ -1,15 +1,24 @@
 use crate::math::matrix::Matrix;
 use bevy::prelude::*;
 
-pub const BOARD_SIZE: usize = 128;
+pub const BOARD_SIZE: usize = 8;
 pub const TILE_SIZE: usize = 32;
 
 #[derive(Component, Clone)]
-pub struct Tile {
-    id: u32,
+#[require(Position, WalkSpeed)]
+pub struct Tile;
+
+#[derive(Component, Default)]
+pub struct Position {
+    pub x: usize,
+    pub y: usize,
 }
 
-#[derive(Resource)]
+/// Used for pathfinding and collision.
+/// Walking speed of 0.0 means not walkable.
+#[derive(Component, Default)]
+pub struct WalkSpeed(pub f32);
+
 pub struct BoardLayer {
     pub tiles: Matrix<Option<Tile>>,
 }
@@ -20,7 +29,7 @@ impl BoardLayer {
 
        tiles.iter_mut().for_each(|tile| {
            if rand::random::<f32>() < 0.7 {
-               *tile = Some(Tile {id: 0})
+               *tile = Some(Tile)
            }
        }); 
 

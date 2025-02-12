@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use game::{
-    board::{BoardLayer, BOARD_SIZE, TILE_SIZE},
+    board::{BoardLayer, Position, Tile, WalkSpeed, BOARD_SIZE, TILE_SIZE},
     camera::CameraPlugin,
 };
 
@@ -12,6 +12,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(CameraPlugin)
         .add_systems(Startup, setup)
+        .add_systems(Update, query_tile)
         .run();
 }
 
@@ -29,6 +30,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         for col in 0..BOARD_SIZE {
             if let Some(ref _tile) = board.tiles.get(row, col).unwrap() {
                 commands.spawn((
+                    Tile,
+                    Position {x: col, y: row},
+                    WalkSpeed(1.0),
                     Sprite {
                         image: tile_handle.clone(),
                         ..default()
@@ -46,6 +50,16 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             }
         }
     }
+}
 
-    commands.insert_resource(board);
+fn query_tile(mut query: Query<(&Position, &mut Sprite), With<Tile>>, input: Res<ButtonInput<KeyCode>>) {
+    if input.just_pressed(KeyCode::Enter) {
+        let x = rand::random::<u8>() as usize % BOARD_SIZE;
+        let y = rand::random::<u8>() as usize % BOARD_SIZE;
+        for (pos, mut sprite) in query.iter_mut() {
+            if pos.x == x && pos.y == y {
+                sprite.color = Color::srgb(0.0, 1.0, 0.0);
+            }
+        }
+    }
 }
