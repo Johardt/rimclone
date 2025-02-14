@@ -11,10 +11,11 @@ pub const BOARD_SIZE: usize = 8;
 #[derive(Default, Clone)]
 pub struct BoardLayer {
     pub tiles: Matrix<Option<Tile>>,
+    pub z_index: usize,
 }
 
 impl BoardLayer {
-    pub fn from_random(seed: f32) -> Self {
+    pub fn from_random(seed: f32, z_index: usize) -> Self {
         let mut tiles = Matrix::new(BOARD_SIZE, BOARD_SIZE);
 
         tiles.iter_mut().for_each(|tile| {
@@ -24,7 +25,7 @@ impl BoardLayer {
             }
         });
 
-        BoardLayer { tiles }
+        BoardLayer { tiles, z_index }
     }
 }
 
@@ -41,7 +42,7 @@ impl Board {
 
 impl Default for Board {
     fn default() -> Self {
-        let layer = BoardLayer::from_random(0.7);
+        let layer = BoardLayer::from_random(0.7, 0);
         let mut board = Board { layers: vec![] };
         board.push_layer(layer);
         board
@@ -103,9 +104,8 @@ fn spawn_layer(
                         translation: Vec3 {
                             x: col as f32 * TILE_SIZE as f32 + offset.x,
                             y: row as f32 * TILE_SIZE as f32 + offset.y,
-                            z: 0.0,
+                            z: layer.z_index as f32,
                         },
-                        scale: Vec3::splat(1.0),
                         ..default()
                     },
                 ));
