@@ -3,7 +3,7 @@ use bevy::{input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll}, prelu
 pub const DRAG_SENSITIVITY: f32 = 1.0;
 pub const ZOOM_SENSITIVITY: f32 = 1.0;
 pub const ZOOM_MIN: f32 = 0.5;
-pub const ZOOM_MAX: f32 = 5.0;
+pub const ZOOM_MAX: f32 = 10.0;
 
 pub struct CameraPlugin;
 

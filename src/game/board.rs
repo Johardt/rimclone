@@ -1,9 +1,9 @@
-use super::tile::*;
+use super::{common::Position, tile::*};
 use crate::math::matrix::Matrix;
 
 use bevy::prelude::*;
 
-pub const BOARD_SIZE: usize = 8;
+pub const BOARD_SIZE: usize = 16;
 
 /// BoardLayer is an abstract representation of a layer of the game board.
 /// It doesn't exist in game, but instead determines how the tiles will be

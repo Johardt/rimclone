@@ -1,9 +1,11 @@
 use bevy::prelude::*;
+use game::common::Position;
 use game::{
-    tile::{Tile, Position},
     board::{Board, BoardPlugin, BOARD_SIZE},
     camera::CameraPlugin,
+    tile::Tile,
 };
+use rand::Rng;
 
 mod game;
 mod math;
@@ -23,8 +25,8 @@ fn query_tile(
     input: Res<ButtonInput<KeyCode>>,
 ) {
     if input.just_pressed(KeyCode::Enter) {
-        let x = rand::random::<u8>() as usize % BOARD_SIZE;
-        let y = rand::random::<u8>() as usize % BOARD_SIZE;
+        let x = rand::rng().random_range(0..BOARD_SIZE);
+        let y = rand::rng().random_range(0..BOARD_SIZE);
         for (pos, mut sprite) in query.iter_mut() {
             if pos.x == x && pos.y == y {
                 sprite.color = Color::srgb(0.0, 1.0, 0.0);
