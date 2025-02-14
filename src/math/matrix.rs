@@ -1,3 +1,5 @@
+
+#[derive(Default, Clone)]
 pub struct Matrix<T> {
     pub rows: usize,
     pub columns: usize,
