@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use game::{
-    board::{Board, BoardPlugin, Position, Tile, BOARD_SIZE},
+    tile::{Tile, Position},
+    board::{Board, BoardPlugin, BOARD_SIZE},
     camera::CameraPlugin,
 };
 

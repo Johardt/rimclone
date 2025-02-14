@@ -1,23 +1,9 @@
+use super::tile::*;
 use crate::math::matrix::Matrix;
+
 use bevy::prelude::*;
 
 pub const BOARD_SIZE: usize = 8;
-pub const TILE_SIZE: usize = 32;
-
-#[derive(Component, Clone)]
-#[require(Position, WalkSpeed)]
-pub struct Tile;
-
-#[derive(Component, Default, Clone)]
-pub struct Position {
-    pub x: usize,
-    pub y: usize,
-}
-
-/// Used for pathfinding and collision.
-/// Walking speed of 0.0 means not walkable.
-#[derive(Component, Default)]
-pub struct WalkSpeed(pub f32);
 
 /// BoardLayer is an abstract representation of a layer of the game board.
 /// It doesn't exist in game, but instead determines how the tiles will be
@@ -51,10 +37,6 @@ impl Board {
     pub fn push_layer(&mut self, layer: BoardLayer) {
         self.layers.push(layer);
     }
-
-    pub fn pop_layer(&mut self) -> Option<BoardLayer> {
-        self.layers.pop()
-    }
 }
 
 impl Default for Board {
@@ -74,6 +56,7 @@ impl Plugin for BoardPlugin {
     }
 }
 
+/// Spawns all BoardLayers one by one
 fn board_setup_system(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -88,32 +71,44 @@ fn board_setup_system(
 
     let board_width = BOARD_SIZE * TILE_SIZE;
     let board_height = BOARD_SIZE * TILE_SIZE;
-    let x_offset = -(board_width as f32) / 2.0 + TILE_SIZE as f32 / 2.0;
-    let y_offset = -(board_height as f32) / 2.0 + TILE_SIZE as f32 / 2.0;
+    let offset: Vec2 = Vec2 {
+        x: -(board_width as f32) / 2.0 + TILE_SIZE as f32 / 2.0,
+        y: -(board_height as f32) / 2.0 + TILE_SIZE as f32 / 2.0,
+    };
 
     for layer in &board.layers {
-        for row in 0..BOARD_SIZE {
-            for col in 0..BOARD_SIZE {
-                if let Some(ref _tile) = layer.tiles.get(row, col).unwrap() {
-                    commands.spawn((
-                        Tile,
-                        Position { x: col, y: row },
-                        WalkSpeed(1.0),
-                        Sprite {
-                            image: tile_handle.clone(),
-                            ..default()
+        spawn_layer(&mut commands, &tile_handle, layer, offset);
+    }
+}
+
+/// Spawn all tiles of a single BoardLayer as Entities
+fn spawn_layer(
+    commands: &mut Commands,
+    tile_handle: &Handle<Image>,
+    layer: &BoardLayer,
+    offset: Vec2,
+) {
+    for row in 0..BOARD_SIZE {
+        for col in 0..BOARD_SIZE {
+            if let Some(ref _tile) = layer.tiles.get(row, col).unwrap() {
+                commands.spawn((
+                    Tile,
+                    Position { x: col, y: row },
+                    WalkSpeed(1.0),
+                    Sprite {
+                        image: tile_handle.clone(),
+                        ..default()
+                    },
+                    Transform {
+                        translation: Vec3 {
+                            x: col as f32 * TILE_SIZE as f32 + offset.x,
+                            y: row as f32 * TILE_SIZE as f32 + offset.y,
+                            z: 0.0,
                         },
-                        Transform {
-                            translation: Vec3 {
-                                x: col as f32 * TILE_SIZE as f32 + x_offset,
-                                y: row as f32 * TILE_SIZE as f32 + y_offset,
-                                z: 0.0,
-                            },
-                            scale: Vec3::splat(1.0),
-                            ..default()
-                        },
-                    ));
-                }
+                        scale: Vec3::splat(1.0),
+                        ..default()
+                    },
+                ));
             }
         }
     }
