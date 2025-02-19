@@ -1,4 +1,6 @@
+use bevy::dev_tools::fps_overlay::{FpsOverlayConfig, FpsOverlayPlugin};
 use bevy::prelude::*;
+use bevy::text::FontSmoothing;
 use game::common::Position;
 use game::{
     board::{Board, BoardPlugin, BOARD_SIZE},
@@ -13,6 +15,18 @@ mod math;
 fn main() {
     App::new()
         .insert_resource(Board::default())
+        .add_plugins(FpsOverlayPlugin {
+                        config: FpsOverlayConfig {
+                            text_config: TextFont {
+                                font_size: 42.0,
+                                font: default(),
+                                font_smoothing: FontSmoothing::default(),
+                            },
+                            text_color: Color::srgb(0.0, 1.0, 0.0),
+                            enabled: true,
+                        },
+                    },
+)
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(CameraPlugin)
         .add_plugins(BoardPlugin)
