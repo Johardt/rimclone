@@ -49,3 +49,16 @@ pub fn movement(
         transform.translation.z = z;
     }
 }
+
+fn startup(mut commands: Commands) {
+    commands.spawn(Camera2d);
+}
+
+pub struct CameraPlugin;
+
+impl Plugin for CameraPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, startup);
+        app.add_systems(Update, movement);
+    }
+}

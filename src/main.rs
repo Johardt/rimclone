@@ -1,68 +1,13 @@
 use bevy::prelude::*;
 use bevy_ecs_tilemap::prelude::*;
+use game::{
+    board::{BoardInfo, BoardPlugin},
+    tile::Tile,
+};
+use helpers::camera::CameraPlugin;
 
+mod game;
 mod helpers;
-
-const MAP_SIZE: u32 = 256;
-const TILE_SIZE: u32 = 32;
-
-fn startup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera2d);
-
-    let texture_handle: Handle<Image> = asset_server.load("graphics/tile.png");
-
-    let map_size = TilemapSize {
-        x: MAP_SIZE,
-        y: MAP_SIZE,
-    };
-
-    // Create a tilemap entity a little early.
-    // We want this entity early because we need to tell each tile which tilemap entity
-    // it is associated with. This is done with the TilemapId component on each tile.
-    // Eventually, we will insert the `TilemapBundle` bundle on the entity, which
-    // will contain various necessary components, such as `TileStorage`.
-    let tilemap_entity = commands.spawn_empty().id();
-
-    // To begin creating the map we will need a `TileStorage` component.
-    // This component is a grid of tile entities and is used to help keep track of individual
-    // tiles in the world. If you have multiple layers of tiles you would have a tilemap entity
-    // per layer, each with their own `TileStorage` component.
-    let mut tile_storage = TileStorage::empty(map_size);
-
-    // Spawn the elements of the tilemap.
-    // Alternatively, you can use helpers::filling::fill_tilemap.
-    for x in 0..map_size.x {
-        for y in 0..map_size.y {
-            let tile_pos = TilePos { x, y };
-            let tile_entity = commands
-                .spawn(TileBundle {
-                    position: tile_pos,
-                    tilemap_id: TilemapId(tilemap_entity),
-                    ..Default::default()
-                })
-                .id();
-            tile_storage.set(&tile_pos, tile_entity);
-        }
-    }
-
-    let tile_size = TilemapTileSize {
-        x: TILE_SIZE as f32,
-        y: TILE_SIZE as f32,
-    };
-    let grid_size = tile_size.into();
-    let map_type = TilemapType::default();
-
-    commands.entity(tilemap_entity).insert(TilemapBundle {
-        grid_size,
-        map_type,
-        size: map_size,
-        storage: tile_storage,
-        texture: TilemapTexture::Single(texture_handle),
-        tile_size,
-        transform: get_tilemap_center_transform(&map_size, &grid_size, &map_type, 0.0),
-        ..Default::default()
-    });
-}
 
 fn hide_texture(
     keyboard_input: Res<ButtonInput<KeyCode>>,
@@ -74,6 +19,31 @@ fn hide_texture(
                 Visibility::Inherited | Visibility::Visible => Visibility::Hidden,
                 Visibility::Hidden => Visibility::Visible,
             };
+        }
+    }
+}
+
+fn find_tiles(keyboard_input: Res<ButtonInput<KeyCode>>, query: Query<&TilePos, With<Tile>>) {
+    if keyboard_input.just_pressed(KeyCode::KeyF) {
+        for tilepos in &query {
+            println!("Tile found with position: {:?}", tilepos);
+        }
+    }
+}
+
+fn replace_tile(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut query: Query<(&TilePos, &mut TileColor)>,
+    board_info: Res<BoardInfo>,
+) {
+    if keyboard_input.just_pressed(KeyCode::KeyR) {
+        let x = rand::random_range(0..board_info.board_size);
+        let y = rand::random_range(0..board_info.board_size);
+
+        for (tilepos, mut tilecolor) in &mut query {
+            if tilepos.x == x && tilepos.y == y {
+                tilecolor.0 = Color::srgb(rand::random(), rand::random(), rand::random());
+            }
         }
     }
 }
@@ -92,8 +62,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(TilemapPlugin)
-        .add_systems(Startup, startup)
-        .add_systems(Update, helpers::camera::movement)
-        .add_systems(Update, hide_texture)
+        .add_plugins((BoardPlugin, CameraPlugin))
+        .add_systems(Update, (hide_texture, replace_tile, find_tiles))
         .run();
 }
